@@ -1,0 +1,104 @@
+
+
+/*CSS properties starts for Header*/
+.header-main-container {
+    background-color: #263238;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  }
+  /*Styling for display on smaller screen*/
+  @media only screen and (max-width: 1000px) {
+    .header-main-container {
+    background-color: #263238;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: left;
+    }
+    .menuDrop{
+      margin-top: 52px !important;
+    }
+  }
+  
+  .menuDrop{
+    margin-top: 40px;
+  }
+  
+  .header-logo-container, .header-search-container, .header-upload-btn-container, .header-profile-btn-container {
+    align-self: left;
+  }
+  
+  .logo {
+    color: #fff;
+    font-size: 18px;
+    text-decoration: none;
+  }
+  
+  .header-search-container {
+    display: flex;
+    background: #263238;
+    border-radius: 4px;
+    width: 300px;
+    margin-right: 16px;
+    padding: 4px;
+    height: 50%;
+  }
+  
+  .search-icon {
+    padding: 0 7px;
+    align-self: center;
+  }
+  
+  .image-preview-container {
+    padding: 15px 0;
+    text-align: center;
+  }
+  
+  .image-preview {
+    max-height: 250px;
+    max-width: 250px;
+  }
+  
+  .user-profile-drop-down {
+    position: absolute;
+    right: 16px;
+    background: #dfdfdf;
+    padding: 16px;
+    border-radius: 6px;
+    margin-top: 3px;
+    display: block;
+  }
+  
+  .my-account-dropdown-menu-item, .logout-dropdown-menu-item {
+    text-decoration: none;
+    color: #000;
+    cursor: pointer;
+  }
+  
+  .red
+  {
+      color: red;
+  }
+  
+  .dispNone{
+    display:none;
+  }
+  
+  .dispBlock {
+    display: block;
+  }
+  
+  .MuiInputBase-root.MuiInput-root.MuiInput-underline:after{
+  border-bottom: white !important;
+  width:8px !important;
+  }
+  
+  .tabs{
+    margin-bottom: 20px;
+  }
+
+  
+  /*CSS for Header ends here*/

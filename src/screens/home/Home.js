@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import Header from '../../common/header/Header';
-//import { Route, Link } from 'react-router-dom';
 import * as Utils from "../../common/Utils";
 import * as Constants from "../../common/Constants";
 import { withStyles } from "@material-ui/core/styles";
 import './Home.css';
+import RestaurantCard from './RestaurantCard';
+import Grid from '@material-ui/core/Grid';
 
 
 const styles = {
@@ -82,10 +83,34 @@ class Home extends Component {
     };
 
     render() {
-
-        return (
+        const { classes } = this.props;
+        return (            
             <div>
                 <Header logoutHandler={this.loginredirect} baseUrl={this.props.baseUrl} searchRestaurantsByName={this.searchRestaurantsByName} showSearch={true} history={this.props.history} />
+                <div className="mainContainer">
+                {
+                        this.state.imageData === null ? <span style={{ fontSize: "20px" }}>No restaurant with the given name</span>
+                            : (
+                                (this.state.imageData || []).map((resItem, index) =>
+                                    <div key={"div" + index} className="restaurantCard">
+                                        <Grid className="gridCard" key={index}>
+                                            <RestaurantCard
+                                                resId={resItem.id}
+                                                resURL={resItem.photo_URL}
+                                                resName={resItem.restaurant_name}
+                                                resFoodCategories={resItem.categories}
+                                                resCustRating={resItem.customer_rating}
+                                                resNumberCustRated={resItem.number_customers_rated}
+                                                avgPrice={resItem.average_price}
+                                                classes={classes}
+                                                index={index}
+                                            />
+                                        </Grid>
+                                    </div>
+                                )
+                            )
+                    }
+                </div>
             </div>
         )
     }

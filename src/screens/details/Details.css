@@ -1,0 +1,29 @@
+.details-container {
+  padding: 24px 40px;
+}
+
+.category-ctr {
+  margin: 24px 0;
+}
+
+.image-ctr img {
+  max-width: 100%;
+  max-height: 450px;
+  object-fit: cover;
+}
+
+.restaurant-cover-section {
+  padding: 12px;
+}
+
+.item-root {
+  display: flex;
+}
+
+span.item-primary,
+p.item-secondary {
+  flex-grow: 1;
+  flex-basis: 0;
+  display: block;
+  color: #000000;
+}

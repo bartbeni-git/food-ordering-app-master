@@ -22,7 +22,6 @@ import CardActions from "@material-ui/core/CardActions";
 
 import Header from "../../common/header/Header";
 import "./Details.css";
-import { red } from "@material-ui/core/colors";
 
 class Details extends Component {
   constructor(props) {
@@ -31,16 +30,30 @@ class Details extends Component {
       data: null, // Stores restraunt details
       id: this.props.match.params.id, // Restaurant ID passed down by react router,
       cart: {}, // An object which has menu item ID and quantity
+      menuItemsMap: {}, // Stoes are all menu with id as key and their prices, name & type.
     };
+  }
+
+  // Retruns an aggregated list of all menut items across all categories
+  getMenutItems(data) {
+    const menuItemsMap = {};
+    data.categories.reduce((prev, next) => {
+      return [...prev, ...next.item_list]
+    }, []).forEach(({id, item_name, price, item_type}) => {
+      menuItemsMap[id] = {item_name, price, item_type};
+    });
+
+    return menuItemsMap;
   }
 
   componentDidMount() {
     fetch(`${this.props.baseUrl}restaurant/${this.state.id}`)
       .then((res) => res.json())
       .then((restaurantData) => {
-        console.log(restaurantData);
+        const menuItemsMap = this.getMenutItems(restaurantData);
         this.setState({
           data: restaurantData,
+          menuItemsMap
         });
       })
       .catch((e) => console.error(e));
@@ -179,9 +192,44 @@ class Details extends Component {
     );
   }
 
+  // Reads cart items from state, transforms it into a JS object which could be used to render HTML
+  getCartItemsJson() {
+    const cart = this.state.cart
+    const cartItemIds = Object.keys(cart);
+    const menuItemsMap = this.state.menuItemsMap;
+
+    return cartItemIds.map((id) => {
+      const itemDetails = menuItemsMap[id];
+      const quantity = cart[id];
+
+      return {
+        id,
+        ...itemDetails,
+        quantity
+      }
+    })
+  }
+
+  // Returns cart item rows
+  getCartItemRows(cartItems) {
+    return cartItems.map(({id, item_name, price, item_type, quantity}) => {
+      const itemClassName = item_type === "NON_VEG" ? 'red-dot' : 'green-dot';
+      const totalPrice = price*quantity;
+      return (
+        <li className="cart-item-list-item" key={id}>
+          <div className="cart-item-blk"><span className={"dot "+ itemClassName}></span></div>
+          <div className="cart-item-blk">{item_name}</div>
+          <div className="cart-item-blk action-container"></div>
+          <div className="cart-item-blk">{"₹ "+totalPrice}</div>
+        </li>
+      )
+    })
+  }
+
   // Returns Cart UI contained in Card object
   getCartSection() {
     const cartSize = Object.keys(this.state.cart).reduce((prev, itemId) => prev+this.state.cart[itemId], 0);
+    const cartItemRows = this.getCartItemRows(this.getCartItemsJson());
     return (
       <Card>
         <CardHeader
@@ -203,14 +251,19 @@ class Details extends Component {
           title="My Cart"
           titleTypographyProps={{ variant: "h5" }}
         />
+        <CardContent>
+          <ul className="cart-item-list">
+            {cartItemRows}
+          </ul>
+        </CardContent>
         <CardActions>
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth={true}
-        >
-          CHECKOUT
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth={true}
+          >
+            CHECKOUT
+          </Button>
         </CardActions>
       </Card>
     );

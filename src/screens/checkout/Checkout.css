@@ -1,0 +1,36 @@
+.tab-panel[hidden='true'] {
+  display: none;
+}
+
+.address-blk-ctr {
+  margin: 16px 0;
+}
+
+.address-blk-ctr .tab-panel{
+  padding: 24px 0;
+}
+
+.address-card-root-tile {
+  padding-bottom: 48px;
+}
+
+.action-bar {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.address-card-root-tile {
+  padding: 20px;
+}
+
+div.address-form-conrol {
+  display: block;
+  margin-top: 25px;
+  margin-bottom: 50px;
+  width: 300px;
+}
+
+label.address-form-conrol__label,
+div.address-form-conrol__input {
+  width: 100%;
+}

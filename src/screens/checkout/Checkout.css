@@ -26,11 +26,32 @@
 div.address-form-conrol {
   display: block;
   margin-top: 25px;
-  margin-bottom: 50px;
+  margin-bottom: 25px;
   width: 300px;
 }
 
 label.address-form-conrol__label,
 div.address-form-conrol__input {
   width: 100%;
+}
+
+div.address-form-conrol .MuiInputBase-root {
+  width: 100%;
+}
+
+div.MuiMenu-paper {
+  max-height: 175px;
+}
+
+ul.address-grid {
+  flex-wrap: nowrap;
+  transform: translateZ(0);
+}
+
+.action-bar, .action-bar * {
+  box-sizing: border-box;
+}
+
+.address-card-root-tile {
+  padding: 16px 8px !important;
 }

@@ -38,19 +38,18 @@ class Checkout extends Component {
       addressPanelVal: 0, // To display the first tab panel in address tabs step
       selectedAddressId: null, // Meant to store the address UUID selected by customer for delivery
       addressForm: {
-        stateUuid: '',
-        locality: '',
-        city: '',
-        pincode: '',
-        flatBuildingName: '',
+        stateUuid: "",
+        locality: "",
+        city: "",
+        pincode: "",
+        flatBuildingName: "",
       }, // Preserves the state of form meant to add new address
       statesList: [], // List of all available states
     };
   }
 
-  componentDidMount() {
+  fetchAddressList() {
     const requestUrlForAddressList = this.props.baseUrl + "address/customer";
-    const requestUrlForStatesList = this.props.baseUrl + "states";
     const that = this;
     Utils.makeApiCall(
       requestUrlForAddressList,
@@ -61,6 +60,7 @@ class Checkout extends Component {
       (responseText) => {
         that.setState({
           addresses: JSON.parse(responseText).addresses || [],
+          addressPanelVal: 0, // Switching back to the address tab
         });
       },
       () => {
@@ -70,6 +70,12 @@ class Checkout extends Component {
         });
       }
     );
+  }
+
+  componentDidMount() {
+    this.fetchAddressList();
+    const requestUrlForStatesList = this.props.baseUrl + "states";
+    const that = this;
     Utils.makeApiCall(
       requestUrlForStatesList,
       null,
@@ -99,10 +105,18 @@ class Checkout extends Component {
       );
     }
 
+    const customClasses = {
+      grid: {
+        root: "address-grid"
+      }
+    }
+    const that = this;
     return (
       <div className="address-grid-ctr">
-        <GridList className="address-grid" spacing={10} cols={3}>
-          {addresses.map((address) => (
+        <GridList classes={customClasses.grid} spacing={10} cols={2.5}>
+          {addresses.map((address) => {
+            const color = that.state.selectedAddressId === address.id ? {color: 'green'} : {color: 'inherit'};
+            return (
             <div key={address.id} className="address-card-root-tile">
               <Typography variant="body2" gutterBottom>
                 {address.flat_building_name}
@@ -120,35 +134,91 @@ class Checkout extends Component {
                 {address.pincode}
               </Typography>
               <div className="action-bar">
-                <IconButton aria-label="Select address">
+                <IconButton aria-label="Select address" onClick={() => that.setState({selectedAddressId: address.id})}>
                   <CheckCircleIcon
                     className={
                       address.id === this.state.selectedAddressId
                         ? "selected"
                         : ""
                     }
+                    style={color}
                   />
                 </IconButton>
               </div>
             </div>
-          ))}
+          )})}
         </GridList>
       </div>
     );
   }
 
   handleSaveAddress() {
-    const isFlatBuildingNameMissing = !(this.state.addressForm.flatBuildingName && this.state.addressForm.flatBuildingName.length > 0);
-    const isLocalityMissing = !(this.state.addressForm.locality && this.state.addressForm.locality.length > 0);
-    const isCityMissing = !(this.state.addressForm.city && this.state.addressForm.city.length > 0);
-    const isStateUuidMissing = !(this.state.addressForm.stateUuid && this.state.addressForm.stateUuid.length > 0);
-    const isPincodeMissing = !(this.state.addressForm.pincode && this.state.addressForm.pincode.length === 6);
-
-    const updatedAddressForm = Object.assign(
-      this.state.addressForm,
-      { isFlatBuildingNameMissing,  isLocalityMissing, isCityMissing, isStateUuidMissing, isPincodeMissing}
+    const isFlatBuildingNameMissing = !(
+      this.state.addressForm.flatBuildingName &&
+      this.state.addressForm.flatBuildingName.length > 0
     );
+    const isLocalityMissing = !(
+      this.state.addressForm.locality &&
+      this.state.addressForm.locality.length > 0
+    );
+    const isCityMissing = !(
+      this.state.addressForm.city && this.state.addressForm.city.length > 0
+    );
+    const isStateUuidMissing = !(
+      this.state.addressForm.stateUuid &&
+      this.state.addressForm.stateUuid.length > 0
+    );
+    const isPincodeMissing = !(
+      this.state.addressForm.pincode &&
+      this.state.addressForm.pincode.length > 0
+    );
+    const isPincodeInvalid =
+      !isPincodeMissing &&
+      !(
+        parseInt(this.state.addressForm.pincode) > 100000 &&
+        parseInt(this.state.addressForm.pincode) < 999999
+      );
+
+    const updatedAddressForm = Object.assign(this.state.addressForm, {
+      isFlatBuildingNameMissing,
+      isLocalityMissing,
+      isCityMissing,
+      isStateUuidMissing,
+      isPincodeMissing,
+      isPincodeInvalid,
+    });
+
+    const shouldSaveAddress =
+      !isFlatBuildingNameMissing &&
+      !isLocalityMissing &&
+      !isCityMissing &&
+      !isStateUuidMissing &&
+      !isPincodeMissing &&
+      !isPincodeInvalid;
     this.setState({ addressForm: updatedAddressForm });
+
+    if (shouldSaveAddress) {
+      const requestUrlForAddressSave = this.props.baseUrl + "address";
+      const accessToken = window.sessionStorage.getItem("access-token");
+      const authorization = `Bearer ${accessToken}`;
+
+      fetch(requestUrlForAddressSave, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization,
+        },
+        body: JSON.stringify({
+          city: this.state.addressForm.city,
+          flat_building_name: this.state.addressForm.flatBuildingName,
+          locality: this.state.addressForm.locality,
+          pincode: this.state.addressForm.pincode,
+          state_uuid: this.state.addressForm.stateUuid,
+        }),
+      })
+        .then(() => this.fetchAddressList())
+        .catch((e) => console.error("Failed to add this address", e));
+    }
   }
 
   getAddressForm() {
@@ -161,6 +231,10 @@ class Checkout extends Component {
       },
       Input: {
         root: "address-form-conrol__input",
+      },
+      Select: {
+        root: "address-form-conrol__select-root",
+        select: "address-form-conrol__select",
       },
     };
     return (
@@ -176,10 +250,9 @@ class Checkout extends Component {
             defaultValue={this.state.addressForm.flatBuildingName}
             onChange={(e) => {
               const flatBuildingName = e.target.value;
-              const updatedAddressForm = Object.assign(
-                this.state.addressForm,
-                { flatBuildingName }
-              );
+              const updatedAddressForm = Object.assign(this.state.addressForm, {
+                flatBuildingName,
+              });
               this.setState({ addressForm: updatedAddressForm });
             }}
           />
@@ -200,10 +273,9 @@ class Checkout extends Component {
             defaultValue={this.state.addressForm.locality}
             onChange={(e) => {
               const locality = e.target.value;
-              const updatedAddressForm = Object.assign(
-                this.state.addressForm,
-                { locality }
-              );
+              const updatedAddressForm = Object.assign(this.state.addressForm, {
+                locality,
+              });
               this.setState({ addressForm: updatedAddressForm });
             }}
           />
@@ -224,10 +296,9 @@ class Checkout extends Component {
             defaultValue={this.state.addressForm.city}
             onChange={(e) => {
               const city = e.target.value;
-              const updatedAddressForm = Object.assign(
-                this.state.addressForm,
-                { city }
-              );
+              const updatedAddressForm = Object.assign(this.state.addressForm, {
+                city,
+              });
               this.setState({ addressForm: updatedAddressForm });
             }}
           />
@@ -238,11 +309,7 @@ class Checkout extends Component {
           )}
         </FormControl>
         <FormControl classes={customClasses.FormControl} required>
-          <InputLabel
-            classes={customClasses.Label}
-            htmlFor="stateUuid"
-            id="state-id-label"
-          >
+          <InputLabel classes={customClasses.Label} id="state-id-label">
             State
           </InputLabel>
           <Select
@@ -250,14 +317,13 @@ class Checkout extends Component {
             id="stateUuid"
             value={this.state.addressForm.stateUuid}
             autoWidth={true}
-            classes={customClasses.Input}
+            classes={customClasses.Select}
             onChange={(e) => {
               const stateUuid = e.target.value;
               console.log(this.state.addressForm);
-              const updatedAddressForm = Object.assign(
-                this.state.addressForm,
-                { stateUuid }
-              );
+              const updatedAddressForm = Object.assign(this.state.addressForm, {
+                stateUuid,
+              });
               this.setState({ addressForm: updatedAddressForm });
             }}
           >
@@ -281,14 +347,13 @@ class Checkout extends Component {
           <Input
             classes={customClasses.Input}
             id="pincode"
-            type="number"
+            type="text"
             defaultValue={this.state.addressForm.pincode}
             onChange={(e) => {
               const pincode = e.target.value;
-              const updatedAddressForm = Object.assign(
-                this.state.addressForm,
-                { pincode }
-              );
+              const updatedAddressForm = Object.assign(this.state.addressForm, {
+                pincode,
+              });
               this.setState({ addressForm: updatedAddressForm });
             }}
           />
@@ -297,16 +362,23 @@ class Checkout extends Component {
               <span className="red">required</span>
             </FormHelperText>
           )}
+          {this.state.addressForm.isPincodeInvalid && (
+            <FormHelperText error={true}>
+              <span className="red">
+                Pincode must contain only number and must be 6 digits long
+              </span>
+            </FormHelperText>
+          )}
         </FormControl>
         <FormControl>
-              <Button
-                onClick={() => this.handleSaveAddress()}
-                variant="contained"
-                color="secondary"
-              >
-                SAVE ADDRESS
-              </Button>
-            </FormControl>
+          <Button
+            onClick={() => this.handleSaveAddress()}
+            variant="contained"
+            color="secondary"
+          >
+            SAVE ADDRESS
+          </Button>
+        </FormControl>
       </div>
     );
   }

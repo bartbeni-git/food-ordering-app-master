@@ -55,3 +55,15 @@ ul.address-grid {
 .address-card-root-tile {
   padding: 16px 8px !important;
 }
+
+.payments-blk-ctr {
+  padding: 16px;
+}
+
+.action-ctr {
+  margin: 16px;
+}
+
+.final-step {
+  padding: 24px;
+}

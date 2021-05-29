@@ -12,8 +12,10 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import GridList from "@material-ui/core/GridList";
-import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
+import Radio from "@material-ui/core/Radio";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormLabel from "@material-ui/core/FormLabel";
 import IconButton from "@material-ui/core/IconButton";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import FormHelperText from "@material-ui/core/FormHelperText";
@@ -45,6 +47,8 @@ class Checkout extends Component {
         flatBuildingName: "",
       }, // Preserves the state of form meant to add new address
       statesList: [], // List of all available states
+      paymentsList: [], // List of all available payment types
+      selectedPaymentId: "", // Uuid of the payment method selected by customer
     };
   }
 
@@ -75,6 +79,7 @@ class Checkout extends Component {
   componentDidMount() {
     this.fetchAddressList();
     const requestUrlForStatesList = this.props.baseUrl + "states";
+    const requestUrlForPaymentsList = this.props.baseUrl + "payment";
     const that = this;
     Utils.makeApiCall(
       requestUrlForStatesList,
@@ -89,6 +94,21 @@ class Checkout extends Component {
       },
       (e) => {
         console.error("Failed to fetch states!", e);
+      }
+    );
+    Utils.makeApiCall(
+      requestUrlForPaymentsList,
+      null,
+      null,
+      Constants.ApiRequestTypeEnum.GET,
+      null,
+      (responseText) => {
+        that.setState({
+          paymentsList: JSON.parse(responseText).paymentMethods || [],
+        });
+      },
+      (e) => {
+        console.error("Failed to fetch payments!", e);
       }
     );
   }
@@ -107,46 +127,55 @@ class Checkout extends Component {
 
     const customClasses = {
       grid: {
-        root: "address-grid"
-      }
-    }
+        root: "address-grid",
+      },
+    };
     const that = this;
     return (
       <div className="address-grid-ctr">
         <GridList classes={customClasses.grid} spacing={10} cols={2.5}>
           {addresses.map((address) => {
-            const color = that.state.selectedAddressId === address.id ? {color: 'green'} : {color: 'inherit'};
+            const color =
+              that.state.selectedAddressId === address.id
+                ? { color: "green" }
+                : { color: "inherit" };
             return (
-            <div key={address.id} className="address-card-root-tile">
-              <Typography variant="body2" gutterBottom>
-                {address.flat_building_name}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                {address.locality}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                {address.city}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                {address.state.state_name}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                {address.pincode}
-              </Typography>
-              <div className="action-bar">
-                <IconButton aria-label="Select address" onClick={() => that.setState({selectedAddressId: address.id})}>
-                  <CheckCircleIcon
-                    className={
-                      address.id === this.state.selectedAddressId
-                        ? "selected"
-                        : ""
+              <div key={address.id} className="address-card-root-tile">
+                <Typography variant="body2" gutterBottom>
+                  {address.flat_building_name}
+                </Typography>
+                <Typography variant="body2" gutterBottom>
+                  {address.locality}
+                </Typography>
+                <Typography variant="body2" gutterBottom>
+                  {address.city}
+                </Typography>
+                <Typography variant="body2" gutterBottom>
+                  {address.state.state_name}
+                </Typography>
+                <Typography variant="body2" gutterBottom>
+                  {address.pincode}
+                </Typography>
+                <div className="action-bar">
+                  <IconButton
+                    aria-label="Select address"
+                    onClick={() =>
+                      that.setState({ selectedAddressId: address.id })
                     }
-                    style={color}
-                  />
-                </IconButton>
+                  >
+                    <CheckCircleIcon
+                      className={
+                        address.id === this.state.selectedAddressId
+                          ? "selected"
+                          : ""
+                      }
+                      style={color}
+                    />
+                  </IconButton>
+                </div>
               </div>
-            </div>
-          )})}
+            );
+          })}
         </GridList>
       </div>
     );
@@ -383,6 +412,33 @@ class Checkout extends Component {
     );
   }
 
+  // Returns action buttons for Address step
+  getAddressStepActionBar() {
+    return (
+      <div className="action-ctr">
+        <Button disabled style={{ marginRight: 16 }}>
+          BACK
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ marginRight: 16 }}
+          onClick={() => {
+            if (this.state.selectedAddressId) {
+              this.setState({
+                activeStep: 1, // Takes the stepper to payment step
+              });
+            } else {
+              console.error("Please select an address first");
+            }
+          }}
+        >
+          NEXT
+        </Button>
+      </div>
+    );
+  }
+
   // Returns HTML for address step
   getAddressStep() {
     // Event handler for click on address bar tabs
@@ -404,12 +460,73 @@ class Checkout extends Component {
         <div className="tab-panel" role="tab-panel" hidden={panelVal !== 1}>
           {this.getAddressForm()}
         </div>
+        {this.getAddressStepActionBar()}
+      </div>
+    );
+  }
+
+  // Returns action buttons for Payment step
+  getPaymentStepActionBar() {
+    return (
+      <div className="action-ctr">
+        <Button
+          style={{ marginRight: 16 }}
+          onClick={() => {
+            this.setState({
+              activeStep: 0, // Takes the stepper to payment step
+            });
+          }}
+        >
+          BACK
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ marginRight: 16 }}
+          onClick={() => {
+            if (this.state.selectedPaymentId) {
+              this.setState({ activeStep: 2 });
+            } else {
+              console.error("Please select a payment mode first");
+            }
+          }}
+        >
+          FINISH
+        </Button>
       </div>
     );
   }
 
   getPaymentStep() {
-    return <div className="payments-blk-ctr"></div>;
+    const paymentOptions = this.state.paymentsList.map(
+      ({ id, payment_name }) => (
+        <FormControlLabel
+          value={id}
+          key={id}
+          control={<Radio />}
+          label={payment_name}
+        />
+      )
+    );
+    const that = this;
+    return (
+      <div className="payments-blk-ctr">
+        <FormControl component="fieldset">
+          <FormLabel component="legend">Select Mode of Payment</FormLabel>
+          <RadioGroup
+            aria-label="gender"
+            name="gender1"
+            value={this.state.selectedPaymentId}
+            onChange={(e) =>
+              that.setState({ selectedPaymentId: e.target.value })
+            }
+          >
+            {paymentOptions}
+          </RadioGroup>
+        </FormControl>
+        {this.getPaymentStepActionBar()}
+      </div>
+    );
   }
 
   getCheckoutStepper() {
@@ -443,7 +560,26 @@ class Checkout extends Component {
     return (
       <div>
         <Header baseUrl={this.props.baseUrl} history={this.props.history} />
-        <div className="checkout-container">{checkoutStepper}</div>
+        <div className="checkout-container">
+          {checkoutStepper}
+
+          {this.state.activeStep > 1 && (
+            <div className="final-step">
+              <Typography variant="h5" gutterBottom>
+                View the summary {"&"} place your order now!
+              </Typography>
+              <Button
+                onClick={() => {
+                  this.setState({
+                    activeStep: 0, // Takes the stepper to payment step
+                  });
+                }}
+              >
+                CHANGE
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

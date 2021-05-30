@@ -4,6 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import StarRateIcon from "@material-ui/icons/StarRate";
 import AddIcon from "@material-ui/icons/Add";
+import RemoveIcon from "@material-ui/icons/Remove";
 import ShoppingCartIcon from "@material-ui/icons/ShoppingCart";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
@@ -22,6 +23,8 @@ import CardActions from "@material-ui/core/CardActions";
 
 import Header from "../../common/header/Header";
 import "./Details.css";
+
+let bill = 0;
 
 class Details extends Component {
   constructor(props) {
@@ -152,7 +155,10 @@ class Details extends Component {
     const { average_price } = this.state.data;
     return (
       <div>
-        <p><i className="fa fa-inr" aria-hidden="true"></i>{average_price}</p>
+        <p>
+          <i className="fa fa-inr" aria-hidden="true"></i>
+          {average_price}
+        </p>
         <p>Average cost for two people</p>
       </div>
     );
@@ -221,16 +227,56 @@ class Details extends Component {
 
   // Returns cart item rows
   getCartItemRows(cartItems) {
+    bill = 0; // Reset bill every time items are rendered
     return cartItems.map(({ id, item_name, price, item_type, quantity }) => {
       const itemClassName = item_type === "NON_VEG" ? "red-dot" : "green-dot";
       const totalPrice = price * quantity;
+      bill += price * quantity;
       return (
         <li className="cart-item-list-item" key={id}>
           <div className="cart-item-blk">
             <span className={"dot " + itemClassName}></span>
           </div>
           <div className="cart-item-blk">{item_name}</div>
-          <div className="cart-item-blk action-container"></div>
+          <div className="cart-item-blk action-container">
+            <IconButton
+              key="remove"
+              aria-label="Close"
+              color="inherit"
+              onClick={() => {
+                const updatedCart = { ...this.state.cart };
+
+                if (updatedCart[id] === 1) {
+                  delete updatedCart[id];
+                } else {
+                  updatedCart[id] -= 1;
+                }
+
+                this.setState({
+                  cart: updatedCart,
+                });
+              }}
+            >
+              <RemoveIcon />
+            </IconButton>
+            {quantity}
+            <IconButton
+              key="add"
+              aria-label="Close"
+              color="inherit"
+              onClick={() => {
+                const updatedCart = { ...this.state.cart };
+
+                updatedCart[id] += 1;
+
+                this.setState({
+                  cart: updatedCart,
+                });
+              }}
+            >
+              <AddIcon />
+            </IconButton>
+          </div>
           <div className="cart-item-blk">
             <i className="fa fa-inr" aria-hidden="true"></i>
             {totalPrice}
@@ -285,6 +331,20 @@ class Details extends Component {
         />
         <CardContent>
           <ul className="cart-item-list">{cartItemRows}</ul>
+          <ul className="cart-summary-list">
+            <li className="cart-item-list-item">
+              <div className="cart-item-blk">
+                <Typography variant="button" gutterBottom>
+                  TOTAL AMOUNT
+                </Typography>
+              </div>
+              <div className="cart-item-blk price">
+                <Typography variant="button" gutterBottom>
+                  <i className="fa fa-inr" aria-hidden="true"></i>{bill}
+                </Typography>
+              </div>
+            </li>
+          </ul>
         </CardContent>
         <CardActions>
           <Button

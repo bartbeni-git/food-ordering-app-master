@@ -28,3 +28,10 @@ p.item-secondary {
   color: #000000;
 }
 
+
+
+.cart-summary-list,
+.cart-summary-list {
+  padding: 0;
+}
+

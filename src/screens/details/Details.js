@@ -31,17 +31,21 @@ class Details extends Component {
       id: this.props.match.params.id, // Restaurant ID passed down by react router,
       cart: {}, // An object which has menu item ID and quantity
       menuItemsMap: {}, // Stoes are all menu with id as key and their prices, name & type.
+      redirectToCheckout: false, // Boolean flag to trigger
     };
+    this.handleOrder = this.handleOrder.bind(this);
   }
 
   // Retruns an aggregated list of all menut items across all categories
   getMenutItems(data) {
     const menuItemsMap = {};
-    data.categories.reduce((prev, next) => {
-      return [...prev, ...next.item_list]
-    }, []).forEach(({id, item_name, price, item_type}) => {
-      menuItemsMap[id] = {item_name, price, item_type};
-    });
+    data.categories
+      .reduce((prev, next) => {
+        return [...prev, ...next.item_list];
+      }, [])
+      .forEach(({ id, item_name, price, item_type }) => {
+        menuItemsMap[id] = { item_name, price, item_type };
+      });
 
     return menuItemsMap;
   }
@@ -53,7 +57,7 @@ class Details extends Component {
         const menuItemsMap = this.getMenutItems(restaurantData);
         this.setState({
           data: restaurantData,
-          menuItemsMap
+          menuItemsMap,
         });
       })
       .catch((e) => console.error(e));
@@ -63,7 +67,12 @@ class Details extends Component {
     const items = item_list.map((item) => {
       const itemColor =
         item.item_type.toUpperCase() === "VEG" ? "green" : "red";
-      const priceLabel = `₹ ${item.price}`;
+      const priceLabel = (
+        <span>
+          <i className="fa fa-inr" aria-hidden="true"></i>
+          {item.price}
+        </span>
+      );
       const itemClasses = {
         root: "item-root",
         primary: "item-primary",
@@ -85,7 +94,7 @@ class Details extends Component {
               aria-label="Add to cart"
               style={{ marginRight: 24 }}
               onClick={() => {
-                const updatedCart = {...this.state.cart};
+                const updatedCart = { ...this.state.cart };
 
                 if (!updatedCart[item.id]) {
                   updatedCart[item.id] = 1;
@@ -94,8 +103,8 @@ class Details extends Component {
                 }
 
                 this.setState({
-                  cart: updatedCart
-                })
+                  cart: updatedCart,
+                });
               }}
             >
               <AddIcon />
@@ -143,7 +152,7 @@ class Details extends Component {
     const { average_price } = this.state.data;
     return (
       <div>
-        <p>₹ {average_price}</p>
+        <p><i className="fa fa-inr" aria-hidden="true"></i>{average_price}</p>
         <p>Average cost for two people</p>
       </div>
     );
@@ -194,7 +203,7 @@ class Details extends Component {
 
   // Reads cart items from state, transforms it into a JS object which could be used to render HTML
   getCartItemsJson() {
-    const cart = this.state.cart
+    const cart = this.state.cart;
     const cartItemIds = Object.keys(cart);
     const menuItemsMap = this.state.menuItemsMap;
 
@@ -205,30 +214,53 @@ class Details extends Component {
       return {
         id,
         ...itemDetails,
-        quantity
-      }
-    })
+        quantity,
+      };
+    });
   }
 
   // Returns cart item rows
   getCartItemRows(cartItems) {
-    return cartItems.map(({id, item_name, price, item_type, quantity}) => {
-      const itemClassName = item_type === "NON_VEG" ? 'red-dot' : 'green-dot';
-      const totalPrice = price*quantity;
+    return cartItems.map(({ id, item_name, price, item_type, quantity }) => {
+      const itemClassName = item_type === "NON_VEG" ? "red-dot" : "green-dot";
+      const totalPrice = price * quantity;
       return (
         <li className="cart-item-list-item" key={id}>
-          <div className="cart-item-blk"><span className={"dot "+ itemClassName}></span></div>
+          <div className="cart-item-blk">
+            <span className={"dot " + itemClassName}></span>
+          </div>
           <div className="cart-item-blk">{item_name}</div>
           <div className="cart-item-blk action-container"></div>
-          <div className="cart-item-blk">{"₹ "+totalPrice}</div>
+          <div className="cart-item-blk">
+            <i className="fa fa-inr" aria-hidden="true"></i>
+            {totalPrice}
+          </div>
         </li>
-      )
-    })
+      );
+    });
+  }
+
+  handleOrder() {
+    const cartItems = this.getCartItemsJson();
+
+    if (cartItems.length === 0) {
+      return;
+    }
+    //Saving cart and restaurant details in localstorage for checkout page
+    window.localStorage.setItem("cart", JSON.stringify(cartItems));
+    window.localStorage.setItem(
+      "restaurantData",
+      JSON.stringify(this.state.data)
+    );
+    this.props.history.push("/checkout/");
   }
 
   // Returns Cart UI contained in Card object
   getCartSection() {
-    const cartSize = Object.keys(this.state.cart).reduce((prev, itemId) => prev+this.state.cart[itemId], 0);
+    const cartSize = Object.keys(this.state.cart).reduce(
+      (prev, itemId) => prev + this.state.cart[itemId],
+      0
+    );
     const cartItemRows = this.getCartItemRows(this.getCartItemsJson());
     return (
       <Card>
@@ -240,7 +272,7 @@ class Details extends Component {
                 backgroundColor: "transparent",
                 color: "black",
                 padding: 12,
-                overflow: 'initial'
+                overflow: "initial",
               }}
             >
               <Badge badgeContent={cartSize} color="primary">
@@ -252,15 +284,14 @@ class Details extends Component {
           titleTypographyProps={{ variant: "h5" }}
         />
         <CardContent>
-          <ul className="cart-item-list">
-            {cartItemRows}
-          </ul>
+          <ul className="cart-item-list">{cartItemRows}</ul>
         </CardContent>
         <CardActions>
           <Button
             variant="contained"
             color="primary"
             fullWidth={true}
+            onClick={this.handleOrder}
           >
             CHECKOUT
           </Button>

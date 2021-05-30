@@ -25,8 +25,18 @@ import Input from "@material-ui/core/Input";
 import Button from "@material-ui/core/Button";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
+import Grid from "@material-ui/core/Grid";
+import CloseIcon from '@material-ui/icons/Close';
 
 import "./Checkout.css";
+import {
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Divider,
+  Snackbar,
+} from "@material-ui/core";
 
 class Checkout extends Component {
   constructor() {
@@ -35,7 +45,8 @@ class Checkout extends Component {
       shouldRedirectToHome: sessionStorage.getItem("access-token") === null,
       addresses: [],
       newAddress: null,
-      cart: window.sessionStorage.getItem("cart"), // Cart preserved from the restaurant details page
+      cart: JSON.parse(window.localStorage.getItem("cart")), // Cart preserved from the restaurant details page
+      restaurantData: JSON.parse(window.localStorage.getItem("restaurantData")), // Restaurant data which was used for placing order
       activeStep: 0, // Used as default step by material-ui stepper
       addressPanelVal: 0, // To display the first tab panel in address tabs step
       selectedAddressId: null, // Meant to store the address UUID selected by customer for delivery
@@ -49,7 +60,21 @@ class Checkout extends Component {
       statesList: [], // List of all available states
       paymentsList: [], // List of all available payment types
       selectedPaymentId: "", // Uuid of the payment method selected by customer
+      // Following are common attributes for snackbar
+      snackBarOpen: false,
+      snackBarText: '',
     };
+
+    this.placeOrder = this.placeOrder.bind(this);
+    this.handleSnackBarClose = this.handleSnackBarClose.bind(this);
+  }
+
+  //Snack bar close common handler
+  handleSnackBarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    this.setState({ snackBarOpen: false, snackBarText: '' })
   }
 
   fetchAddressList() {
@@ -349,7 +374,6 @@ class Checkout extends Component {
             classes={customClasses.Select}
             onChange={(e) => {
               const stateUuid = e.target.value;
-              console.log(this.state.addressForm);
               const updatedAddressForm = Object.assign(this.state.addressForm, {
                 stateUuid,
               });
@@ -550,6 +574,120 @@ class Checkout extends Component {
     );
   }
 
+  placeOrder() {
+    if(!this.state.selectedAddressId) {
+      this.setState({ snackBarOpen: true, snackBarText: 'Please select an address first' });
+      return;
+    }
+    if(!this.state.selectedPaymentId) {
+      this.setState({ snackBarOpen: true, snackBarText: 'Please select payment mode first' });
+      return;
+    }
+
+    let totalBill = 0;
+    const itemQuantities = this.state.cart.map(({id, price, quantity}) => {
+      totalBill += quantity*price;
+      return {
+        item_id: id,
+        price,
+        quantity
+      }
+    });
+    const saveOrderRequest = {
+      "address_id": this.state.selectedAddressId,
+      "bill": totalBill,
+      "coupon_id": "",
+      "discount": 0,
+      "item_quantities": itemQuantities,
+      "payment_id": this.state.selectedPaymentId,
+      "restaurant_id": this.state.restaurantData.id,
+    }
+    const requestUrlForOrderPlacement = this.props.baseUrl + "order";
+    const accessToken = window.sessionStorage.getItem("access-token");
+    const authorization = `Bearer ${accessToken}`;
+
+    fetch(requestUrlForOrderPlacement, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization,
+      },
+      body: JSON.stringify(saveOrderRequest),
+    })
+    .then(response => response.json())
+    .then(({id}) => {
+      if(!id) { throw new Error('Order failed')}
+      this.setState({ snackBarOpen: true, snackBarText: 'Order placed successfully! Your order ID is '+id });
+    })
+    .catch((e) => {
+      console.error('Failed to place order', e);
+      this.setState({ snackBarOpen: true, snackBarText: 'Unable to place your order! Please try again!' });
+    });
+  }
+
+  getCartSummary() {
+    let bill = 0;
+    const cartItemRows = this.state.cart.map(
+      ({ id, item_name, price, item_type, quantity }) => {
+        const itemClassName = item_type === "NON_VEG" ? "red-dot" : "green-dot";
+        const totalPrice = price * quantity;
+        bill += totalPrice;
+        return (
+          <li className="cart-item-list-item" key={id}>
+            <div className="cart-item-blk">
+              <span className={"dot " + itemClassName}></span>
+            </div>
+            <div className="cart-item-blk">{item_name}</div>
+            <div className="cart-item-blk">{quantity}</div>
+            <div className="cart-item-blk price"><i className="fa fa-inr" aria-hidden="true"></i>{totalPrice}</div>
+          </li>
+        );
+      }
+    );
+    return (
+      <Card
+        classes={{
+          root: "summary-card",
+        }}
+      >
+        <CardHeader
+          title="Summary"
+          titleTypographyProps={{ variant: "h5" }}
+          style={{ marginBottom: 16 }}
+        />
+        <CardContent>
+          <Typography variant="body1" gutterBottom>
+            {this.state.restaurantData.restaurant_name}
+          </Typography>
+          <ul className="cart-item-list">{cartItemRows}</ul>
+          <Divider
+            variant="fullWidth"
+            style={{ marginTop: 10, marginBottom: 10 }}
+          />
+          <ul className="cart-summary-list">
+            <li className="cart-item-list-item">
+              <div className="cart-item-blk">
+                <Typography variant="h6" gutterBottom>
+                  Net Amount
+                </Typography>
+              </div>
+              <div className="cart-item-blk price">
+                <Typography variant="h6" gutterBottom>
+                  <i className="fa fa-inr" aria-hidden="true"></i>{bill}
+                </Typography>
+              </div>
+            </li>
+          </ul>
+        </CardContent>
+        <CardActions>
+          <Button variant="contained" color="primary" fullWidth={true} onClick={this.placeOrder}>
+            PLACE ORDER
+          </Button>
+        </CardActions>
+      </Card>
+    );
+  }
+
   render() {
     if (this.state.shouldRedirectToHome) {
       sessionStorage.clear();
@@ -557,29 +695,60 @@ class Checkout extends Component {
       return <Redirect from="/checkout" to="/" />;
     }
     const checkoutStepper = this.getCheckoutStepper();
+    const cartSummaryComponent = this.getCartSummary();
     return (
       <div>
         <Header baseUrl={this.props.baseUrl} history={this.props.history} />
         <div className="checkout-container">
-          {checkoutStepper}
+          <Grid container spacing={10}>
+            <Grid item xs={12} sm={6} style={{ paddingRight: "0" }}>
+              {checkoutStepper}
 
-          {this.state.activeStep > 1 && (
-            <div className="final-step">
-              <Typography variant="h5" gutterBottom>
-                View the summary {"&"} place your order now!
-              </Typography>
-              <Button
-                onClick={() => {
-                  this.setState({
-                    activeStep: 0, // Takes the stepper to payment step
-                  });
-                }}
-              >
-                CHANGE
-              </Button>
-            </div>
-          )}
+              {this.state.activeStep > 1 && (
+                <div className="final-step">
+                  <Typography variant="h5" gutterBottom>
+                    View the summary {"&"} place your order now!
+                  </Typography>
+                  <Button
+                    onClick={() => {
+                      this.setState({
+                        activeStep: 0, // Takes the stepper to payment step
+                      });
+                    }}
+                  >
+                    CHANGE
+                  </Button>
+                </div>
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6} style={{ paddingRight: "0" }}>
+              {cartSummaryComponent}
+            </Grid>
+          </Grid>
         </div>
+        <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          open={this.state.snackBarOpen}
+          autoHideDuration={6000}
+          onClose={this.handleSnackBarClose}
+          ContentProps={{
+            'aria-describedby': 'message-id',
+          }}
+          message={<span id="message-id">{this.state.snackBarText}</span>}
+          action={[
+            <IconButton
+              key="close"
+              aria-label="Close"
+              color="inherit"
+              onClick={this.handleSnackBarClose}
+            >
+              <CloseIcon />
+            </IconButton>,
+          ]}
+        />
       </div>
     );
   }

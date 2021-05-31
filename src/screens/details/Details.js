@@ -141,8 +141,8 @@ class Details extends Component {
     const { customer_rating, number_customers_rated } = this.state.data;
     return (
       <div>
-        <p>
-          <StarRateIcon /> {customer_rating}
+        <p style={{'display': 'flex', alignItems: 'center'}}>
+          <StarRateIcon style={{marginTop: 0  }}/> {customer_rating}
         </p>
         <p>
           Average rating by <b>{number_customers_rated}</b> customers
@@ -259,7 +259,7 @@ class Details extends Component {
             >
               <RemoveIcon />
             </IconButton>
-            {quantity}
+            <span class="cart-item-label">{quantity}</span>
             <IconButton
               key="add"
               aria-label="Close"
@@ -277,7 +277,7 @@ class Details extends Component {
               <AddIcon />
             </IconButton>
           </div>
-          <div className="cart-item-blk">
+          <div className="cart-item-blk price">
             <i className="fa fa-inr" aria-hidden="true"></i>
             {totalPrice}
           </div>
@@ -309,7 +309,7 @@ class Details extends Component {
     );
     const cartItemRows = this.getCartItemRows(this.getCartItemsJson());
     return (
-      <Card>
+      <Card style={{padding: 16}}>
         <CardHeader
           avatar={
             <Avatar
@@ -317,7 +317,7 @@ class Details extends Component {
               style={{
                 backgroundColor: "transparent",
                 color: "black",
-                padding: 12,
+                padding: 8,
                 overflow: "initial",
               }}
             >
@@ -328,18 +328,19 @@ class Details extends Component {
           }
           title="My Cart"
           titleTypographyProps={{ variant: "h5" }}
+          style={{paddingLeft: 0, paddingRight: 0}}
         />
-        <CardContent>
+        <CardContent style={{paddingLeft: 0, paddingRight: 0}}>
           <ul className="cart-item-list">{cartItemRows}</ul>
           <ul className="cart-summary-list">
             <li className="cart-item-list-item">
               <div className="cart-item-blk">
-                <Typography variant="button" gutterBottom>
+                <Typography variant="h6" gutterBottom>
                   TOTAL AMOUNT
                 </Typography>
               </div>
               <div className="cart-item-blk price">
-                <Typography variant="button" gutterBottom>
+                <Typography variant="h6" gutterBottom>
                   <i className="fa fa-inr" aria-hidden="true"></i>{bill}
                 </Typography>
               </div>

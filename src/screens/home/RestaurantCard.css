@@ -7,9 +7,6 @@
 
 .rating-main-contnr{
     display: flex;
-    justify-content:space-between;
-    flex-direction: row;
-    padding: 3%;
 }
 
 .avg-price{
@@ -17,7 +14,14 @@
     margin-left: auto;
 }
 
-.cardContainer{
-    width:100% !important;
-    height:100% !important;
+.card-media-img {
+  height: 280px;
+}
+
+.name-ctr {
+  min-height: 104px;
+}
+
+.category-ctr {
+  min-height: 120px;
 }

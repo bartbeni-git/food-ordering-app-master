@@ -38,8 +38,12 @@ const styles = {
   searchInput: {
    // width: "80%",
     color: "white",
-    '&:after': {
-        borderBottom: '2px solid white',
+    display: 'block',
+    width: '280px',
+    paddingLeft: '8px',
+    paddingRight: '8px',
+    '&:hover:before': {
+        borderBottom: '2px solid white !important',
     }
   },
   icon: {
@@ -47,7 +51,7 @@ const styles = {
     fontSize: 32,
   },
   formControl: {
-    width: "90%"
+    width: "100%"
   }
 }
 const TabContainer = function (props) {

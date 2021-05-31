@@ -30,8 +30,12 @@ p.item-secondary {
 
 
 
-.cart-summary-list,
-.cart-summary-list {
-  padding: 0;
+ul.cart-item-list,
+ul.cart-summary-list {
+  padding: 8px;
+}
+
+.cart-item-label {
+  padding: 12px;
 }
 

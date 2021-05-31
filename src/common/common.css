@@ -13,7 +13,6 @@
   display: flex;
   flex: 0 0 100%;
   align-self: stretch;
-  margin: 8px 0;
   align-items: center;
 }
 
@@ -61,6 +60,21 @@
 
 .cart-summary-list {
   padding: 0
+}
+
+/* Few Overriding styles for mobile screen */
+@media only screen and (max-width:600px) { 
+	.summary-card {
+    padding: 0
+  }
+
+  .action-container {
+    flex-grow: 2;
+  }
+
+  button.cart-item-action-btn {
+    padding: 0
+  }
 }
 
 /* cart styles end here */

@@ -1,6 +1,6 @@
 .restuarant-cover {
   padding: 24px 40px;
-  background-color: #cdcdcd;
+  background-color: #e0e0e0;
 }
 
 .ordering-section {
@@ -48,8 +48,9 @@ ul.cart-summary-list {
   padding: 4px;
 }
 
-button.cart-item-action-btn  {
+button.cart-item-action-btn {
   padding: 2px;
+  font-weight: bold;
 }
 
 .rating-label {
@@ -63,7 +64,7 @@ button.cart-item-action-btn  {
 
 /* Few Overriding styles for mobile screen */
 @media only screen and (max-width: 600px) {
-  .restaurant-cover-section  {
+  .restaurant-cover-section {
     padding: 0;
   }
 
@@ -86,4 +87,9 @@ button.cart-item-action-btn  {
   .topMain {
     margin-right: -40px;
   }
+}
+
+button.cart-item-action-btn:hover,
+button.cart-item-action-btn:active {
+  background: yellow;
 }

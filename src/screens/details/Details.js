@@ -27,6 +27,7 @@ import "./Details.css";
 import { Snackbar } from "@material-ui/core";
 
 let bill = 0;
+const ratingBlkStyles = {lineHeight: 1.2, width: 200 , color: '#757575'};
 
 class Details extends Component {
   constructor(props) {
@@ -80,6 +81,7 @@ class Details extends Component {
       .catch((e) => console.error(e));
   }
 
+  // Returns the list of menu items
   getMenuItemsList(item_list) {
     const items = item_list.map((item) => {
       const itemColor =
@@ -146,13 +148,14 @@ class Details extends Component {
           <Typography variant="overline" display="block" gutterBottom>
             {category.category_name}
           </Typography>
-          <Divider variant="middle" />
+          <Divider variant="middle" style={{marginLeft: 0, marginRight: 0}} />
           {menuItemsList}
         </div>
       );
     });
   }
 
+  // Returns rating 
   getRaingBlock() {
     const { customer_rating, number_customers_rated } = this.state.data;
     return (
@@ -164,7 +167,7 @@ class Details extends Component {
           <StarRateIcon style={{ marginTop: 0 }} /> {customer_rating}
         </p>
         <p style={{margin: 0}}>
-          <Typography variant="overline" display="block" gutterBottom style={{lineHeight: 1.2}}>
+          <Typography variant="overline" display="block" gutterBottom style={ratingBlkStyles}>
             Average rating by <b>{number_customers_rated}</b> customers
           </Typography>
         </p>
@@ -181,7 +184,7 @@ class Details extends Component {
           {average_price}
         </p>
         <p style={{margin: 0}}>
-          <Typography variant="overline" display="block" gutterBottom  style={{lineHeight: 1.2}}>
+          <Typography variant="overline" display="block" gutterBottom  style={ratingBlkStyles}>
             Average cost for two people
           </Typography>
         </p>
@@ -373,7 +376,7 @@ class Details extends Component {
               </Badge>
             </Avatar>
           }
-          title="My Cart"
+          title={<b>My Cart</b>}
           titleTypographyProps={{ variant: "h6" }}
           style={{ paddingLeft: 0, paddingRight: 0 }}
         />
@@ -382,12 +385,12 @@ class Details extends Component {
           <ul className="cart-summary-list">
             <li className="cart-item-list-item">
               <div className="cart-item-blk">
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom style={{fontWeight: 'bold'}}>
                   TOTAL AMOUNT
                 </Typography>
               </div>
               <div className="cart-item-blk price">
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom style={{fontWeight: 'bold'}}>
                   <i className="fa fa-inr" aria-hidden="true"></i>
                   {bill}
                 </Typography>
@@ -408,6 +411,7 @@ class Details extends Component {
       </Card>
     );
   }
+
   // Returns the bottom half of details which is menu and cart
   getOrderingSection() {
     const menuCard = this.getMenuCard();

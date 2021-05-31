@@ -69,7 +69,7 @@ class Checkout extends Component {
     this.handleSnackBarClose = this.handleSnackBarClose.bind(this);
   }
 
-  //Snack bar close common handler
+  // Snack bar close common handler
   handleSnackBarClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -77,6 +77,7 @@ class Checkout extends Component {
     this.setState({ snackBarOpen: false, snackBarText: '' })
   }
 
+  // Fetches saved addresses and updates the state
   fetchAddressList() {
     const requestUrlForAddressList = this.props.baseUrl + "address/customer";
     const that = this;

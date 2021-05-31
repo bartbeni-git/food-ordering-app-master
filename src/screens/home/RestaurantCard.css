@@ -1,3 +1,4 @@
+/* Style for Rating */
 .rating-bg-color{
     background-color: #FFCC00;    
     color: white;
@@ -5,15 +6,17 @@
     white-space: nowrap;
 }
 
+/* Stle for the container with the ratings */
 .rating-main-contnr{
     display: flex;
 }
-
+/* Style for the average price */
 .avg-price{
     padding: 4px 4px 4px 5px;
     margin-left: auto;
 }
 
+/* Stle for the card media */
 .card-media-img {
   height: 280px;
 }

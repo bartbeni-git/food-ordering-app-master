@@ -6,6 +6,7 @@ import CardMedia from "@material-ui/core/CardMedia";
 import Typography from "@material-ui/core/Typography";
 import { withRouter } from "react-router-dom";
 
+// Restaturant Card 
 const RestaurantCard = function (props) {
   const index = props.index;
   const classes = props.classes;
@@ -17,6 +18,7 @@ const RestaurantCard = function (props) {
     }
   }
   return (
+    //Card for details page
     <Card
       className={classes.resCard}
       key={index}
@@ -25,6 +27,7 @@ const RestaurantCard = function (props) {
         return props.history.push(detailsPageUrl);
       }}
     >
+  {/* Style for Card */}
       <CardMedia
         component="img"
         alt={props.resName}
@@ -32,6 +35,7 @@ const RestaurantCard = function (props) {
         style={{height: '280'}}
         classes= {customClasses.cardMedia}
       />
+      {/* Style for Card Content */}
       <CardContent>
         <div className='name-ctr'>
         <Typography gutterBottom variant="h4" component="h2">

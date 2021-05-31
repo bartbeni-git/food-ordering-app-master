@@ -171,7 +171,7 @@ class Header extends Component {
           that.openMessageHandlerPostLogin();
         }
       }
-    })
+    });
     xhrLogin.open("POST", this.props.baseUrl + "customer/login");
     xhrLogin.setRequestHeader("authorization", "Basic " + window.btoa(this.state.username + ":" + this.state.password));
     xhrLogin.setRequestHeader("Content-Type", "application/json");
@@ -330,6 +330,7 @@ class Header extends Component {
   // Logout function, redirects to Home page
   logoutClickHandler = () => {
     sessionStorage.clear();
+    localStorage.clear();
     this.props.history.push({
       pathname: "/"
     });
@@ -374,7 +375,7 @@ class Header extends Component {
                   onClose={this.closeMenuHandler}
                   anchorEl={this.state.anchorEl}>
                   <MenuItem onClick={this.handleClose}><Link to="/profile" style={{ textDecoration: 'none', color: "black" }}>My Profile</Link></MenuItem>
-                  <MenuItem onClick={this.props.logoutHandler}>Logout</MenuItem>
+                  <MenuItem onClick={this.logoutClickHandler}>Logout</MenuItem>
                 </Menu>
 
               </div>

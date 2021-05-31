@@ -42,7 +42,7 @@ class Checkout extends Component {
   constructor() {
     super();
     this.state = {
-      shouldRedirectToHome: sessionStorage.getItem("access-token") === null,
+      shouldRedirectToHome: sessionStorage.getItem("access-token") === null, // Non logged in user should be redirected to home
       addresses: [],
       newAddress: null,
       cart: JSON.parse(window.localStorage.getItem("cart")), // Cart preserved from the restaurant details page

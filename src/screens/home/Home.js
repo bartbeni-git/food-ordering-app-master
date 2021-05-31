@@ -104,7 +104,7 @@ class Home extends Component {
           showSearch={true}
           history={this.props.history}
         />
-        <div className="mainContainer" style={{'padding-right': '32px'}}>
+        <div className="mainContainer">
           {this.state.imageData === null ? (
             <span style={{ fontSize: "20px" }}>
               No restaurant with the given name

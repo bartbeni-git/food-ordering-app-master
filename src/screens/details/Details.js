@@ -20,9 +20,11 @@ import Badge from "@material-ui/core/Badge";
 import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
 import CardActions from "@material-ui/core/CardActions";
+import CloseIcon from "@material-ui/icons/Close";
 
 import Header from "../../common/header/Header";
 import "./Details.css";
+import { Snackbar } from "@material-ui/core";
 
 let bill = 0;
 
@@ -35,9 +37,21 @@ class Details extends Component {
       cart: {}, // An object which has menu item ID and quantity
       menuItemsMap: {}, // Stoes are all menu with id as key and their prices, name & type.
       redirectToCheckout: false, // Boolean flag to trigger
+      // Following are common attributes for snackbar
+      snackBarOpen: false,
+      snackBarText: "",
     };
     this.handleOrder = this.handleOrder.bind(this);
+    this.handleSnackBarClose = this.handleSnackBarClose.bind(this);
   }
+
+  //Snack bar close common handler
+  handleSnackBarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    this.setState({ snackBarOpen: false, snackBarText: "" });
+  };
 
   // Retruns an aggregated list of all menut items across all categories
   getMenutItems(data) {
@@ -107,6 +121,8 @@ class Details extends Component {
 
                 this.setState({
                   cart: updatedCart,
+                  snackBarOpen: true,
+                  snackBarText: "Item added to cart!",
                 });
               }}
             >
@@ -141,11 +157,16 @@ class Details extends Component {
     const { customer_rating, number_customers_rated } = this.state.data;
     return (
       <div>
-        <p style={{'display': 'flex', alignItems: 'center'}}>
-          <StarRateIcon style={{marginTop: 0  }}/> {customer_rating}
+        <p
+          style={{ display: "flex", alignItems: "center" }}
+          className="rating-label"
+        >
+          <StarRateIcon style={{ marginTop: 0 }} /> {customer_rating}
         </p>
-        <p>
-          Average rating by <b>{number_customers_rated}</b> customers
+        <p style={{margin: 0}}>
+          <Typography variant="overline" display="block" gutterBottom style={{lineHeight: 1.2}}>
+            Average rating by <b>{number_customers_rated}</b> customers
+          </Typography>
         </p>
       </div>
     );
@@ -155,11 +176,15 @@ class Details extends Component {
     const { average_price } = this.state.data;
     return (
       <div>
-        <p>
+        <p className="rating-label">
           <i className="fa fa-inr" aria-hidden="true"></i>
           {average_price}
         </p>
-        <p>Average cost for two people</p>
+        <p style={{margin: 0}}>
+          <Typography variant="overline" display="block" gutterBottom  style={{lineHeight: 1.2}}>
+            Average cost for two people
+          </Typography>
+        </p>
       </div>
     );
   }
@@ -175,7 +200,7 @@ class Details extends Component {
     const costBlock = this.getCostBlock();
     return (
       <div className="restaurant-cover-section">
-        <Grid container spacing={10}>
+        <Grid container spacing={10} classes={{root: 'restuarant-cover'}}>
           <Grid item xs={12} sm={3}>
             <div className="image-ctr">
               <img src={photo_URL} alt={restaurant_name} />
@@ -186,10 +211,10 @@ class Details extends Component {
               <Typography variant="h5" gutterBottom>
                 {restaurant_name}
               </Typography>
-              <Typography variant="body1" gutterBottom>
-                {locality}
+              <Typography variant="button" gutterBottom>
+                {locality.toUpperCase()}
               </Typography>
-              <Typography variant="body2" gutterBottom>
+              <Typography variant="body1" gutterBottom style={{marginTop: 30, marginBottom: 30}}>
                 {categoryList}
               </Typography>
               <Grid container>
@@ -227,6 +252,9 @@ class Details extends Component {
 
   // Returns cart item rows
   getCartItemRows(cartItems) {
+    const buttonClasses = {
+      root: "cart-item-action-btn",
+    };
     bill = 0; // Reset bill every time items are rendered
     return cartItems.map(({ id, item_name, price, item_type, quantity }) => {
       const itemClassName = item_type === "NON_VEG" ? "red-dot" : "green-dot";
@@ -241,7 +269,8 @@ class Details extends Component {
           <div className="cart-item-blk action-container">
             <IconButton
               key="remove"
-              aria-label="Close"
+              aria-label="Remove"
+              classes={buttonClasses}
               color="inherit"
               onClick={() => {
                 const updatedCart = { ...this.state.cart };
@@ -254,15 +283,18 @@ class Details extends Component {
 
                 this.setState({
                   cart: updatedCart,
+                  snackBarOpen: true,
+                  snackBarText: "Item quantity decreased by 1!",
                 });
               }}
             >
               <RemoveIcon />
             </IconButton>
-            <span class="cart-item-label">{quantity}</span>
+            <span className="cart-item-label">{quantity}</span>
             <IconButton
               key="add"
-              aria-label="Close"
+              aria-label="Add"
+              classes={buttonClasses}
               color="inherit"
               onClick={() => {
                 const updatedCart = { ...this.state.cart };
@@ -271,6 +303,8 @@ class Details extends Component {
 
                 this.setState({
                   cart: updatedCart,
+                  snackBarOpen: true,
+                  snackBarText: "Item quantity increased by 1!",
                 });
               }}
             >
@@ -290,6 +324,19 @@ class Details extends Component {
     const cartItems = this.getCartItemsJson();
 
     if (cartItems.length === 0) {
+      this.setState({
+        snackBarOpen: true,
+        snackBarText: "Please add an item to your cart!",
+      });
+      return;
+    }
+
+    // checking if user is logged in
+    if (sessionStorage.getItem("access-token") === null) {
+      this.setState({
+        snackBarOpen: true,
+        snackBarText: "Please login first!",
+      });
       return;
     }
     //Saving cart and restaurant details in localstorage for checkout page
@@ -309,7 +356,7 @@ class Details extends Component {
     );
     const cartItemRows = this.getCartItemRows(this.getCartItemsJson());
     return (
-      <Card style={{padding: 16}}>
+      <Card classes={{ root: "summary-card" }}>
         <CardHeader
           avatar={
             <Avatar
@@ -327,10 +374,10 @@ class Details extends Component {
             </Avatar>
           }
           title="My Cart"
-          titleTypographyProps={{ variant: "h5" }}
-          style={{paddingLeft: 0, paddingRight: 0}}
+          titleTypographyProps={{ variant: "h6" }}
+          style={{ paddingLeft: 0, paddingRight: 0 }}
         />
-        <CardContent style={{paddingLeft: 0, paddingRight: 0}}>
+        <CardContent style={{ paddingLeft: 0, paddingRight: 0 }}>
           <ul className="cart-item-list">{cartItemRows}</ul>
           <ul className="cart-summary-list">
             <li className="cart-item-list-item">
@@ -341,7 +388,8 @@ class Details extends Component {
               </div>
               <div className="cart-item-blk price">
                 <Typography variant="h6" gutterBottom>
-                  <i className="fa fa-inr" aria-hidden="true"></i>{bill}
+                  <i className="fa fa-inr" aria-hidden="true"></i>
+                  {bill}
                 </Typography>
               </div>
             </li>
@@ -365,6 +413,7 @@ class Details extends Component {
     const menuCard = this.getMenuCard();
     const cartComponent = this.getCartSection();
     return (
+      <div className="ordering-section">
       <Grid container spacing={10}>
         <Grid item xs={12} sm={6} style={{ padding: 50 }}>
           {menuCard}
@@ -373,6 +422,7 @@ class Details extends Component {
           {cartComponent}
         </Grid>
       </Grid>
+      </div>
     );
   }
 
@@ -382,13 +432,36 @@ class Details extends Component {
     const orderingSection = hasData ? this.getOrderingSection() : "";
     return (
       <div>
-        <Header />
+        <Header baseUrl={this.props.baseUrl} history={this.props.history} />
         {hasData && (
           <div className="details-container">
             {restaurantCover}
             {orderingSection}
           </div>
         )}
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "left",
+          }}
+          open={this.state.snackBarOpen}
+          autoHideDuration={6000}
+          onClose={this.handleSnackBarClose}
+          ContentProps={{
+            "aria-describedby": "message-id",
+          }}
+          message={<span id="message-id">{this.state.snackBarText}</span>}
+          action={[
+            <IconButton
+              key="close"
+              aria-label="Close"
+              color="inherit"
+              onClick={this.handleSnackBarClose}
+            >
+              <CloseIcon />
+            </IconButton>,
+          ]}
+        />
       </div>
     );
   }
